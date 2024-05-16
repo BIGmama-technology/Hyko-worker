@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "src"
+version = "0.1.0"
+description = "run your blueprints on your own infrastructure"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11.6"
+pygments = "^2.18.0"
+fpdf2 = "^2.7.8"
+markdown = "^3.6"
+arq = "^0.26.0"
+
+[tool.poetry.dependencies.hyko_sdk]
+git = "https://github.com/BIGmama-technology/Hyko-sdk.git"
+branch = "development"
+
+
+[tool.poetry.dependencies.hyko_toolkit]
+git = "https://github.com/BIGmama-technology/Hyko-toolkit.git"
+branch = "development"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
