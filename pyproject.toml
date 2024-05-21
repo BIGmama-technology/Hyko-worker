@@ -14,14 +14,39 @@ arq = "^0.26.0"
 
 [tool.poetry.dependencies.hyko_sdk]
 git = "https://github.com/BIGmama-technology/Hyko-sdk.git"
-branch = "development"
+branch = "MNF"
 
 
 [tool.poetry.dependencies.hyko_toolkit]
 git = "https://github.com/BIGmama-technology/Hyko-toolkit.git"
-branch = "development"
+branch = "MNF"
 
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.9"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+    "UP",  # pyupgrade
+    "N",  # pep8-naming 
+    "D", # docs
+]
+ignore = [
+    "E501",  # line too long
+    "B008",  # do not perform function calls in argument defaults
+    "D100", # docstrings for modules
+    "D203", # one blank line before class 
+    "D213" # multi line summary second line
+]
+line-length = 100

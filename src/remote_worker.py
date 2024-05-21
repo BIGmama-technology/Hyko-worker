@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 from arq.connections import RedisSettings
@@ -6,9 +7,9 @@ from hyko_sdk.models import StorageConfig
 from hyko_toolkit.registry import Registry
 
 REDIS_SETTINGS = RedisSettings(
-    host="redis.traefik.me",
-    username="remote",
-    password="test",
+    host=f"redis.{os.getenv('HOST')}",
+    username=os.getenv("REDIS_USERNAME"),
+    password=os.getenv("REDIS_PASS"),
 )
 
 
@@ -30,7 +31,7 @@ async def execute_util_function(
         storage_config=StorageConfig(
             refresh_token=refresh_token,
             access_token=access_token,
-            host="https://api.traefik.me",
+            host=f"https://api.{os.getenv('HOST')}",
         ),
     )
 
@@ -55,7 +56,7 @@ async def execute_api_function(
         storage_config=StorageConfig(
             refresh_token=refresh_token,
             access_token=access_token,
-            host="https://api.traefik.me",
+            host=f"https://api.{os.getenv('HOST')}",
         ),
     )
     return output.model_dump()
@@ -71,4 +72,4 @@ class WorkerSettings:
 
     functions = [execute_api_function, execute_util_function]
     redis_settings = REDIS_SETTINGS
-    queue_name = "remote"
+    queue_name = os.getenv("QUEUE_NAME")

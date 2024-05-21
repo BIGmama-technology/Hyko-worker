@@ -15,6 +15,6 @@ cd Hyko-worker/
 ```
 
 ```bash
-docker build -t hyko_worker .
+docker build -t hykoai/hyko_worker .
 docker run --add-host="redis.traefik.me:127.17.0.1" hyko_worker:latest
 ```
