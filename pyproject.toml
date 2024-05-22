@@ -11,17 +11,15 @@ pygments = "^2.18.0"
 fpdf2 = "^2.7.8"
 markdown = "^3.6"
 arq = "^0.26.0"
+langchain-community = "^0.2.0"
 
-[tool.poetry.dependencies.hyko_sdk]
-git = "https://github.com/BIGmama-technology/Hyko-sdk.git"
-branch = "MNF"
+[tool.poetry.group.toolkit.dependencies.hyko_toolkit]
+path = "../toolkit"
+develop = true
 
-
-[tool.poetry.dependencies.hyko_toolkit]
-git = "https://github.com/BIGmama-technology/Hyko-toolkit.git"
-branch = "MNF"
-
-
+[tool.poetry.group.sdk.dependencies.hyko_sdk]
+path = "../sdk"
+develop = true
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.9"
