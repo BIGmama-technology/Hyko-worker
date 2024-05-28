@@ -7,6 +7,8 @@ from arq.connections import RedisSettings
 from hyko_sdk.models import StorageConfig
 from hyko_toolkit.registry import Registry
 
+from src.nvidia_utils import nvidia_smi
+
 REDIS_SETTINGS = RedisSettings(
     host=f"redis.{os.getenv('HOST')}",
     username=os.getenv("REDIS_USERNAME"),
@@ -15,17 +17,22 @@ REDIS_SETTINGS = RedisSettings(
 
 async def ping_worker(ctx: Any):
     """Check if the worker is online."""
-    return "pong"
+    return True
+
+
+async def get_nvidia_smi(ctx):
+    """Arq task to get nvidia smi information."""
+    return await nvidia_smi()
 
 
 async def get_system_info(ctx: Any):
     """Arq task to get system info of worker."""
     system_info = {
         "operating_system": platform.system(),
-        "os_version": platform.version(),
+        "os_version": platform.release(),
         "architecture": platform.machine(),
         "cpu_cors": os.cpu_count(),
-        "total_memory": psutil.virtual_memory().total / (1024 ** 3)
+        "total_memory": round(psutil.virtual_memory().total / (1024 ** 3), 2)
     }
 
     return system_info
@@ -62,6 +69,6 @@ class WorkerSettings:
     For a list of all available settings, see https://arq-docs.helpmanual.io/#arq.worker.Worker
     """
 
-    functions = [execute_node, get_system_info, ping_worker]
+    functions = [execute_node, get_system_info, ping_worker, get_nvidia_smi]
     redis_settings = REDIS_SETTINGS
     queue_name = os.getenv("QUEUE_NAME")
