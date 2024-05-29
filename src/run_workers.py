@@ -22,7 +22,7 @@ def monitor_processes(processes: list[multiprocessing.Process]):
 
 if __name__ == "__main__":
     num_cores = multiprocessing.cpu_count()
-    processes = [multiprocessing.Process(target=run_arq) for _ in range(num_cores - 1)]
+    processes = [multiprocessing.Process(target=run_arq) for _ in range(num_cores - 5)]
 
     for p in processes:
         p.start()

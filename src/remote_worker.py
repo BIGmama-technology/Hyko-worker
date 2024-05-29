@@ -11,17 +11,16 @@ from hyko_toolkit.registry import Registry
 from src.config import settings
 from src.nvidia_utils import nvidia_smi
 
-ENDPOINT_URL: str = f"https://api.{settings.HOST}/workers/{settings.USER_ID}/{settings.WORKER_ID}/system-info"
 REDIS_SETTINGS = RedisSettings(
     host=f"redis.{settings.HOST}",
     username=settings.REDIS_USERNAME,
     password=settings.REDIS_PASS,
 )
 
+
 async def ping_worker(ctx: Any):
     """Check if the worker is online."""
     return True
-
 
 
 async def get_system_info(ctx: Any):
@@ -31,15 +30,11 @@ async def get_system_info(ctx: Any):
         "os_version": platform.release(),
         "architecture": platform.machine(),
         "cpu_cors": os.cpu_count(),
-        "total_memory": round(psutil.virtual_memory().total / (1024 ** 3), 2)
+        "total_memory": round(psutil.virtual_memory().total / (1024**3), 2),
     }
     smi_info = await nvidia_smi()
 
-    payload = {
-        "system_info": system_info,
-        "nvidia_smi": smi_info,
-        "online": True
-    }
+    payload = {"system_info": system_info, "nvidia_smi": smi_info, "online": True}
 
     return payload
 
@@ -48,7 +43,10 @@ async def write_system_info(ctx: Any):
     """Write worker's system info on startup."""
     async with httpx.AsyncClient(verify=False) as client:
         system_info = await get_system_info(ctx=ctx)
-        response = await client.post(ENDPOINT_URL, json=system_info,)
+        response = await client.post(
+            settings.URL,
+            json=system_info,
+        )
         response.raise_for_status()
 
 
@@ -56,8 +54,12 @@ async def update_worker_status(ctx: Any):
     """Update worker status to offline on shutdown."""
     async with httpx.AsyncClient(verify=False) as client:
         payload = {"online": False}
-        response = await client.post(ENDPOINT_URL, json=payload,)
+        response = await client.post(
+            settings.URL,
+            json=payload,
+        )
         response.raise_for_status()
+
 
 async def execute_node(
     ctx: dict[str, Any],
