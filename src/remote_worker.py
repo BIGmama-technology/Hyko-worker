@@ -2,17 +2,20 @@ import os
 import platform
 from typing import Any
 
+import httpx
 import psutil
 from arq.connections import RedisSettings
 from hyko_sdk.models import StorageConfig
 from hyko_toolkit.registry import Registry
 
+from src.config import settings
 from src.nvidia_utils import nvidia_smi
 
+ENDPOINT_URL: str = f"https://api.{settings.HOST}/workers/{settings.USER_ID}/{settings.WORKER_ID}/system-info"
 REDIS_SETTINGS = RedisSettings(
-    host=f"redis.{os.getenv('HOST')}",
-    username=os.getenv("REDIS_USERNAME"),
-    password=os.getenv("REDIS_PASS"),
+    host=f"redis.{settings.HOST}",
+    username=settings.REDIS_USERNAME,
+    password=settings.REDIS_PASS,
 )
 
 async def ping_worker(ctx: Any):
@@ -20,13 +23,9 @@ async def ping_worker(ctx: Any):
     return True
 
 
-async def get_nvidia_smi(ctx):
-    """Arq task to get nvidia smi information."""
-    return await nvidia_smi()
-
 
 async def get_system_info(ctx: Any):
-    """Arq task to get system info of worker."""
+    """Arq task to get system and nvidia smi info of worker."""
     system_info = {
         "operating_system": platform.system(),
         "os_version": platform.release(),
@@ -34,8 +33,31 @@ async def get_system_info(ctx: Any):
         "cpu_cors": os.cpu_count(),
         "total_memory": round(psutil.virtual_memory().total / (1024 ** 3), 2)
     }
+    smi_info = await nvidia_smi()
 
-    return system_info
+    payload = {
+        "system_info": system_info,
+        "nvidia_smi": smi_info,
+        "online": True
+    }
+
+    return payload
+
+
+async def write_system_info(ctx: Any):
+    """Write worker's system info on startup."""
+    async with httpx.AsyncClient(verify=False) as client:
+        system_info = await get_system_info(ctx=ctx)
+        response = await client.post(ENDPOINT_URL, json=system_info,)
+        response.raise_for_status()
+
+
+async def update_worker_status(ctx: Any):
+    """Update worker status to offline on shutdown."""
+    async with httpx.AsyncClient(verify=False) as client:
+        payload = {"online": False}
+        response = await client.post(ENDPOINT_URL, json=payload,)
+        response.raise_for_status()
 
 async def execute_node(
     ctx: dict[str, Any],
@@ -54,7 +76,7 @@ async def execute_node(
         storage_config=StorageConfig(
             refresh_token=refresh_token,
             access_token=access_token,
-            host=f"https://api.{os.getenv('HOST')}",
+            host=f"https://api.{settings.HOST}",
         ),
     )
 
@@ -69,6 +91,8 @@ class WorkerSettings:
     For a list of all available settings, see https://arq-docs.helpmanual.io/#arq.worker.Worker
     """
 
-    functions = [execute_node, get_system_info, ping_worker, get_nvidia_smi]
+    functions = [execute_node, get_system_info, ping_worker]
     redis_settings = REDIS_SETTINGS
-    queue_name = os.getenv("QUEUE_NAME")
+    on_startup = write_system_info
+    on_shutdown = update_worker_status
+    queue_name = settings.WORKER_ID
