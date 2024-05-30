@@ -10,14 +10,17 @@ def run_arq():
 
 def monitor_processes(processes: list[multiprocessing.Process]):
     """Check if one of the process died and restart it."""
-    while True:
-        for i, p in enumerate(processes):
-            if not p.is_alive():
-                print(f"Worker {i} died. Restarting.")
-                new_p = multiprocessing.Process(target=run_arq)
-                new_p.start()
-                processes[i] = new_p
-        time.sleep(2)
+    try:
+        while True:
+            for i, p in enumerate(processes):
+                if not p.is_alive():
+                    print(f"Worker {i} died. Restarting.")
+                    new_p = multiprocessing.Process(target=run_arq)
+                    new_p.start()
+                    processes[i] = new_p
+            time.sleep(2)
+    except KeyboardInterrupt:
+        return
 
 
 if __name__ == "__main__":
